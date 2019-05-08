@@ -29,7 +29,6 @@ class CachingAspect implements Aspect
 
     public function __construct(CacheStorage $cacheStorage)
     {
-
         $this->cacheStorage = $cacheStorage;
     }
 
