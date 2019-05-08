@@ -12,7 +12,6 @@ use GoSwoole\BaseServer\Server\Context;
 use GoSwoole\BaseServer\Server\PlugIn\AbstractPlugin;
 use GoSwoole\BaseServer\Server\PlugIn\PluginInterfaceManager;
 use GoSwoole\BaseServer\Server\Server;
-use GoSwoole\Plugins\Aop\AopConfig;
 use GoSwoole\Plugins\Aop\AopPlugin;
 use GoSwoole\Plugins\Cache\Aspect\CachingAspect;
 use GoSwoole\Plugins\Redis\RedisPlugin;
@@ -50,7 +49,7 @@ class CachePlugin extends AbstractPlugin
     {
         parent::__construct();
         $this->atAfter(RedisPlugin::class);
-        $this->atAfter(AopConfig::class);
+        $this->atAfter(AopPlugin::class);
         if ($cacheConfig == null) {
             $cacheConfig = new CacheConfig();
         }
