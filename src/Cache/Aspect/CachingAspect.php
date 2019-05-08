@@ -1,11 +1,9 @@
 <?php
-/*
- * Go! AOP framework
- *
- * @copyright Copyright 2014, Lisachenko Alexander <lisachenko.it@gmail.com>
- *
- * This source file is subject to the license that is bundled
- * with this source code in the file LICENSE.
+/**
+ * Created by PhpStorm.
+ * User: 白猫
+ * Date: 2019/5/8
+ * Time: 11:08
  */
 
 namespace GoSwoole\Plugins\Cache\Aspect;
