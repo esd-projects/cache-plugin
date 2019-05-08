@@ -1,0 +1,171 @@
+<?php
+/*
+ * Go! AOP framework
+ *
+ * @copyright Copyright 2014, Lisachenko Alexander <lisachenko.it@gmail.com>
+ *
+ * This source file is subject to the license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
+namespace GoSwoole\Plugins\Cache\Aspect;
+
+use Go\Aop\Aspect;
+use Go\Aop\Intercept\MethodInvocation;
+use Go\Lang\Annotation\Around;
+use GoSwoole\Plugins\Cache\Annotation\Cacheable;
+use GoSwoole\Plugins\Cache\Annotation\CacheEvict;
+use GoSwoole\Plugins\Cache\Annotation\CachePut;
+use GoSwoole\Plugins\Cache\CacheStorage;
+
+/**
+ * Caching aspect
+ */
+class CachingAspect implements Aspect
+{
+
+    /**
+     * @var CacheStorage
+     */
+    private $cacheStorage;
+
+    public function __construct(CacheStorage $cacheStorage)
+    {
+
+        $this->cacheStorage = $cacheStorage;
+    }
+
+    /**
+     * This advice intercepts an execution of cacheable methods
+     *
+     * Logic is pretty simple: we look for the value in the cache and if it's not present here
+     * then invoke original method and store it's result in the cache.
+     *
+     * Real-life examples will use APC or Memcache to store value in the cache
+     *
+     * @param MethodInvocation $invocation Invocation
+     *
+     * @Around("@execution(Demo\Annotation\Cacheable)")
+     * @return mixed
+     */
+    public function aroundCacheable(MethodInvocation $invocation)
+    {
+        $obj = $invocation->getThis();
+        $class = is_object($obj) ? get_class($obj) : $obj;
+        $key = $class . ':' . $invocation->getMethod()->name . ":";
+        $cacheable = $invocation->getMethod()->getAnnotation(Cacheable::class);
+        //初始化计算环境
+        $p = $invocation->getArguments();
+        //计算key
+        $key .= eval("return (" . $cacheable->key . ");");
+        //计算condition
+        $condition = true;
+        if (!empty($cacheable->condition)) {
+            $condition = eval("return (" . $cacheable->condition . ");");
+        }
+        $data = null;
+        if (empty($cacheable->namespace)) {
+            $data = $this->cacheStorage->get($key);
+        } else {
+            $data = $this->cacheStorage->getFromNameSpace($cacheable->namespace, $key);
+        }
+        //获取到缓存就返回
+        if ($data != null) {
+            return serverUnSerialize($data);
+        }
+        //执行
+        $result = $invocation->proceed();
+        //可以缓存就缓存
+        if ($condition) {
+            $data = serverSerialize($result);
+            if (empty($cacheable->namespace)) {
+                $this->cacheStorage->set($key, $data, $cacheable->time);
+            } else {
+                $this->cacheStorage->setFromNameSpace($cacheable->namespace, $key, $data);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * This advice intercepts an execution of cachePut methods
+     *
+     * Logic is pretty simple: we look for the value in the cache and if it's not present here
+     * then invoke original method and store it's result in the cache.
+     *
+     * Real-life examples will use APC or Memcache to store value in the cache
+     *
+     * @param MethodInvocation $invocation Invocation
+     *
+     * @Around("@execution(Demo\Annotation\CachePut)")
+     * @return mixed
+     */
+    public function aroundCachePut(MethodInvocation $invocation)
+    {
+        $obj = $invocation->getThis();
+        $class = is_object($obj) ? get_class($obj) : $obj;
+        $key = $class . ':' . $invocation->getMethod()->name . ":";
+        $cachePut = $invocation->getMethod()->getAnnotation(CachePut::class);
+        //初始化计算环境
+        $p = $invocation->getArguments();
+        //计算key
+        $key .= eval("return (" . $cachePut->key . ");");
+        //计算condition
+        $condition = true;
+        if (!empty($cachePut->condition)) {
+            $condition = eval("return (" . $cachePut->condition . ");");
+        }
+        //执行
+        $result = $invocation->proceed();
+        //可以缓存就缓存
+        if ($condition) {
+            $data = serverSerialize($result);
+            if (empty($cachePut->namespace)) {
+                $this->cacheStorage->set($key, $data, $cachePut->time);
+            } else {
+                $this->cacheStorage->setFromNameSpace($cachePut->namespace, $key, $data);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * This advice intercepts an execution of cacheEvict methods
+     *
+     * Logic is pretty simple: we look for the value in the cache and if it's not present here
+     * then invoke original method and store it's result in the cache.
+     *
+     * Real-life examples will use APC or Memcache to store value in the cache
+     *
+     * @param MethodInvocation $invocation Invocation
+     *
+     * @Around("@execution(Demo\Annotation\CacheEvict)")
+     * @return mixed
+     */
+    public function aroundCacheEvict(MethodInvocation $invocation)
+    {
+        $obj = $invocation->getThis();
+        $class = is_object($obj) ? get_class($obj) : $obj;
+        $key = $class . ':' . $invocation->getMethod()->name . ":";
+        $cacheEvict = $invocation->getMethod()->getAnnotation(CacheEvict::class);
+        $result = null;
+        if ($cacheEvict->beforeInvocation) {
+            //执行
+            $result = $invocation->proceed();
+        }
+        if (empty($cacheEvict->namespace)) {
+            $this->cacheStorage->remove($key);
+        } else {
+            if ($cacheEvict->allEntries) {
+                $this->cacheStorage->removeNameSpace($cacheEvict->namespace);
+            } else {
+                $this->cacheStorage->removeFromNameSpace($cacheEvict->namespace, $key);
+            }
+        }
+        if (!$cacheEvict->beforeInvocation) {
+            //执行
+            $result = $invocation->proceed();
+        }
+        return $result;
+    }
+}

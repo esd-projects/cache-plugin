@@ -1,0 +1,24 @@
+{
+  "require": {
+    "go-swoole/base-server":"~0.1",
+    "go-swoole/aop-plugin":"~0.1",
+    "go-swoole/redis-plugin":"~0.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "GoSwoole\\Plugins\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "tmtbe",
+      "email": "896369042@qq.com",
+      "homepage": "https://github.com/tmtbe"
+    }
+  ],
+  "name": "go-swoole/cache-plugin",
+  "type": "library",
+  "keywords": ["server", "swoole"],
+  "description": "cache-plugin",
+  "license": "MIT"
+}
