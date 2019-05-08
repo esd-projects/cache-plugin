@@ -45,7 +45,7 @@ class CachingAspect implements Aspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(Demo\Annotation\Cacheable)")
+     * @Around("@execution(GoSwoole\Plugins\Cache\Annotation\Cacheable)")
      * @return mixed
      */
     public function aroundCacheable(MethodInvocation $invocation)
@@ -97,7 +97,7 @@ class CachingAspect implements Aspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(Demo\Annotation\CachePut)")
+     * @Around("@execution(GoSwoole\Plugins\Cache\Annotation\CachePut)")
      * @return mixed
      */
     public function aroundCachePut(MethodInvocation $invocation)
@@ -139,7 +139,7 @@ class CachingAspect implements Aspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(Demo\Annotation\CacheEvict)")
+     * @Around("@execution(GoSwoole\Plugins\Cache\Annotation\CacheEvict)")
      * @return mixed
      */
     public function aroundCacheEvict(MethodInvocation $invocation)
