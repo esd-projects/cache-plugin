@@ -55,32 +55,38 @@ class CachingAspect implements Aspect
         $p = $invocation->getArguments();
         //计算key
         $key = eval("return (" . $cacheable->key . ");");
-        $this->debug("cache get namespace:{$cacheable->namespace} key:{$key}");
-        //计算condition
-        $condition = true;
-        if (!empty($cacheable->condition)) {
-            $condition = eval("return (" . $cacheable->condition . ");");
-        }
-        $data = null;
-        if (empty($cacheable->namespace)) {
-            $data = $this->cacheStorage->get($key);
+        if (empty($key)) {
+            $this->warn("cache key is empty,ignore this cache");
+            //执行
+            $result = $invocation->proceed();
         } else {
-            $data = $this->cacheStorage->getFromNameSpace($cacheable->namespace, $key);
-        }
-        //获取到缓存就返回
-        if ($data != null) {
-            $this->debug("cache Hit!");
-            return serverUnSerialize($data);
-        }
-        //执行
-        $result = $invocation->proceed();
-        //可以缓存就缓存
-        if ($condition) {
-            $data = serverSerialize($result);
+            $this->debug("cache get namespace:{$cacheable->namespace} key:{$key}");
+            //计算condition
+            $condition = true;
+            if (!empty($cacheable->condition)) {
+                $condition = eval("return (" . $cacheable->condition . ");");
+            }
+            $data = null;
             if (empty($cacheable->namespace)) {
-                $this->cacheStorage->set($key, $data, $cacheable->time);
+                $data = $this->cacheStorage->get($key);
             } else {
-                $this->cacheStorage->setFromNameSpace($cacheable->namespace, $key, $data);
+                $data = $this->cacheStorage->getFromNameSpace($cacheable->namespace, $key);
+            }
+            //获取到缓存就返回
+            if ($data != null) {
+                $this->debug("cache Hit!");
+                return serverUnSerialize($data);
+            }
+            //执行
+            $result = $invocation->proceed();
+            //可以缓存就缓存
+            if ($condition) {
+                $data = serverSerialize($result);
+                if (empty($cacheable->namespace)) {
+                    $this->cacheStorage->set($key, $data, $cacheable->time);
+                } else {
+                    $this->cacheStorage->setFromNameSpace($cacheable->namespace, $key, $data);
+                }
             }
         }
         return $result;
@@ -108,21 +114,28 @@ class CachingAspect implements Aspect
         $p = $invocation->getArguments();
         //计算key
         $key = eval("return (" . $cachePut->key . ");");
-        $this->debug("cache put namespace:{$cachePut->namespace} key:{$key}");
-        //计算condition
-        $condition = true;
-        if (!empty($cachePut->condition)) {
-            $condition = eval("return (" . $cachePut->condition . ");");
-        }
-        //执行
-        $result = $invocation->proceed();
-        //可以缓存就缓存
-        if ($condition) {
-            $data = serverSerialize($result);
-            if (empty($cachePut->namespace)) {
-                $this->cacheStorage->set($key, $data, $cachePut->time);
-            } else {
-                $this->cacheStorage->setFromNameSpace($cachePut->namespace, $key, $data);
+        if (empty($key)) {
+            $this->warn("cache key is empty,ignore this cache");
+            //执行
+            $result = $invocation->proceed();
+        } else {
+            $this->debug("cache put namespace:{$cachePut->namespace} key:{$key}");
+
+            //计算condition
+            $condition = true;
+            if (!empty($cachePut->condition)) {
+                $condition = eval("return (" . $cachePut->condition . ");");
+            }
+            //执行
+            $result = $invocation->proceed();
+            //可以缓存就缓存
+            if ($condition) {
+                $data = serverSerialize($result);
+                if (empty($cachePut->namespace)) {
+                    $this->cacheStorage->set($key, $data, $cachePut->time);
+                } else {
+                    $this->cacheStorage->setFromNameSpace($cachePut->namespace, $key, $data);
+                }
             }
         }
         return $result;
@@ -150,24 +163,30 @@ class CachingAspect implements Aspect
         $p = $invocation->getArguments();
         //计算key
         $key = eval("return (" . $cacheEvict->key . ");");
-        $this->debug("cache evict namespace:{$cacheEvict->namespace} key:{$key}");
-        $result = null;
-        if ($cacheEvict->beforeInvocation) {
+        if (empty($key)) {
+            $this->warn("cache key is empty,ignore this cache");
             //执行
             $result = $invocation->proceed();
-        }
-        if (empty($cacheEvict->namespace)) {
-            $this->cacheStorage->remove($key);
         } else {
-            if ($cacheEvict->allEntries) {
-                $this->cacheStorage->removeNameSpace($cacheEvict->namespace);
-            } else {
-                $this->cacheStorage->removeFromNameSpace($cacheEvict->namespace, $key);
+            $this->debug("cache evict namespace:{$cacheEvict->namespace} key:{$key}");
+            $result = null;
+            if ($cacheEvict->beforeInvocation) {
+                //执行
+                $result = $invocation->proceed();
             }
-        }
-        if (!$cacheEvict->beforeInvocation) {
-            //执行
-            $result = $invocation->proceed();
+            if (empty($cacheEvict->namespace)) {
+                $this->cacheStorage->remove($key);
+            } else {
+                if ($cacheEvict->allEntries) {
+                    $this->cacheStorage->removeNameSpace($cacheEvict->namespace);
+                } else {
+                    $this->cacheStorage->removeFromNameSpace($cacheEvict->namespace, $key);
+                }
+            }
+            if (!$cacheEvict->beforeInvocation) {
+                //执行
+                $result = $invocation->proceed();
+            }
         }
         return $result;
     }
