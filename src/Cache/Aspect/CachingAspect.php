@@ -11,6 +11,7 @@ namespace GoSwoole\Plugins\Cache\Aspect;
 use Go\Aop\Aspect;
 use Go\Aop\Intercept\MethodInvocation;
 use Go\Lang\Annotation\Around;
+use GoSwoole\BaseServer\Plugins\Logger\GetLogger;
 use GoSwoole\Plugins\Cache\Annotation\Cacheable;
 use GoSwoole\Plugins\Cache\Annotation\CacheEvict;
 use GoSwoole\Plugins\Cache\Annotation\CachePut;
@@ -21,7 +22,7 @@ use GoSwoole\Plugins\Cache\CacheStorage;
  */
 class CachingAspect implements Aspect
 {
-
+    use GetLogger;
     /**
      * @var CacheStorage
      */
@@ -49,12 +50,12 @@ class CachingAspect implements Aspect
     {
         $obj = $invocation->getThis();
         $class = is_object($obj) ? get_class($obj) : $obj;
-        $key = $class . ':' . $invocation->getMethod()->name . ":";
         $cacheable = $invocation->getMethod()->getAnnotation(Cacheable::class);
         //初始化计算环境
         $p = $invocation->getArguments();
         //计算key
-        $key .= eval("return (" . $cacheable->key . ");");
+        $key = eval("return (" . $cacheable->key . ");");
+        $this->debug("cache get namespace:{$cacheable->namespace} key:{$key}");
         //计算condition
         $condition = true;
         if (!empty($cacheable->condition)) {
@@ -68,6 +69,7 @@ class CachingAspect implements Aspect
         }
         //获取到缓存就返回
         if ($data != null) {
+            $this->debug("cache Hit!");
             return serverUnSerialize($data);
         }
         //执行
@@ -101,12 +103,12 @@ class CachingAspect implements Aspect
     {
         $obj = $invocation->getThis();
         $class = is_object($obj) ? get_class($obj) : $obj;
-        $key = $class . ':' . $invocation->getMethod()->name . ":";
         $cachePut = $invocation->getMethod()->getAnnotation(CachePut::class);
         //初始化计算环境
         $p = $invocation->getArguments();
         //计算key
-        $key .= eval("return (" . $cachePut->key . ");");
+        $key = eval("return (" . $cachePut->key . ");");
+        $this->debug("cache put namespace:{$cachePut->namespace} key:{$key}");
         //计算condition
         $condition = true;
         if (!empty($cachePut->condition)) {
@@ -143,8 +145,12 @@ class CachingAspect implements Aspect
     {
         $obj = $invocation->getThis();
         $class = is_object($obj) ? get_class($obj) : $obj;
-        $key = $class . ':' . $invocation->getMethod()->name . ":";
         $cacheEvict = $invocation->getMethod()->getAnnotation(CacheEvict::class);
+        //初始化计算环境
+        $p = $invocation->getArguments();
+        //计算key
+        $key = eval("return (" . $cacheEvict->key . ");");
+        $this->debug("cache evict namespace:{$cacheEvict->namespace} key:{$key}");
         $result = null;
         if ($cacheEvict->beforeInvocation) {
             //执行
