@@ -73,7 +73,7 @@ class CachingAspect implements Aspect
                 $condition = eval("return (" . $cacheable->condition . ");");
             }
             $data = null;
-            $data = $this->getCache($key, $cacheable->namespace);
+            $data = $this->getCache($key, $cacheable);
             //获取到缓存就返回
             if ($data != null) {
                 $this->debug("cache Hit!");
@@ -95,7 +95,7 @@ class CachingAspect implements Aspect
                 }else{
                     $i = 0;
                     do{
-                        $result = $this->getCache($key, $cacheable->namespace);
+                        $result = $this->getCache($key, $cacheable);
                         if($result) break;
                         usleep($this->config->getLockWait() * 1000);
                         $i += $this->config->getLockWait();
@@ -214,7 +214,7 @@ class CachingAspect implements Aspect
         return $result;
     }
 
-    public function getCache($key, $cacheable){
+    public function getCache($key,Cacheable $cacheable){
         if (empty($cacheable->namespace)) {
             $data = $this->cacheStorage->get($key);
         } else {
@@ -223,8 +223,9 @@ class CachingAspect implements Aspect
         return $data;
     }
 
-    public function setCache($key, $data, $cacheable): void
+    public function setCache($key, $data,Cacheable $cacheable): void
     {
+
         if (empty($cacheable->namespace)) {
             $ret = $this->cacheStorage->set($key, $data, $cacheable->time);
         } else {
