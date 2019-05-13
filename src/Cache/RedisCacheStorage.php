@@ -73,7 +73,7 @@ class RedisCacheStorage implements CacheStorage
     }
 
 
-    public function lock($resource, $ttl=1000)
+    public function lock(string $resource, int $ttl = 1000)
     {
         $resource = 'LOCK_' . $resource;
         $token = uniqid();
@@ -86,7 +86,8 @@ class RedisCacheStorage implements CacheStorage
     }
 
 
-    public function unlock($resource, $token){
+    public function unlock(string $resource, string $token)
+    {
         $resource = 'LOCK_' . $resource;
         $script = '
             if redis.call("GET", KEYS[1]) == ARGV[1] then
