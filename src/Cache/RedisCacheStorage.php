@@ -55,8 +55,10 @@ class RedisCacheStorage implements CacheStorage
 
     public function set(string $id, string $data, int $time)
     {
+        //如果缓存时间是默认值，则给缓存时间增加一个0-20%的浮动，避免大量缓存同时过期
         if ($time == 0) {
             $time = $this->cacheConfig->getTimeout();
+            $time = mt_rand($time, ceil($time *0.2) + $time);
         }
         if ($time > 0) {
             return $this->redis($this->cacheConfig->getDb())->setex(self::prefix . $id, $time, $data);
