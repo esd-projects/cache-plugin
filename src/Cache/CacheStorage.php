@@ -18,4 +18,6 @@ interface CacheStorage
     public function get(string $id);
     public function set(string $id,string $data,int $time);
     public function remove(string $id);
+    public function lock(string $id , int $ttl);
+    public function unlock(string $id, string $token);
 }

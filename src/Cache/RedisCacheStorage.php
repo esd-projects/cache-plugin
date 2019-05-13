@@ -9,11 +9,13 @@
 namespace GoSwoole\Plugins\Cache;
 
 
+use GoSwoole\BaseServer\Plugins\Logger\GetLogger;
 use GoSwoole\Plugins\Redis\GetRedis;
 
 class RedisCacheStorage implements CacheStorage
 {
     use GetRedis;
+    use GetLogger;
     /**
      * @var CacheConfig
      */
@@ -57,9 +59,9 @@ class RedisCacheStorage implements CacheStorage
             $time = $this->cacheConfig->getTimeout();
         }
         if ($time > 0) {
-            $this->redis($this->cacheConfig->getDb())->setex(self::prefix . $id, $time, $data);
+            return $this->redis($this->cacheConfig->getDb())->setex(self::prefix . $id, $time, $data);
         } else {
-            $this->redis($this->cacheConfig->getDb())->set(self::prefix . $id, $data);
+            return $this->redis($this->cacheConfig->getDb())->set(self::prefix . $id, $data);
         }
     }
 
@@ -67,4 +69,33 @@ class RedisCacheStorage implements CacheStorage
     {
         $this->redis($this->cacheConfig->getDb())->del(self::prefix . $id);
     }
+
+
+    public function lock($resource, $ttl=1000)
+    {
+        $resource = 'LOCK_' . $resource;
+        $token = uniqid();
+        if($this->redis($this->cacheConfig->getDb())->set($resource, $token, ['NX', 'PX' => $ttl])){
+            $this->debug("cache lock:" . $resource .', token :'. $token);
+            return $token;
+        }
+        $this->debug("cache lock fail" . $resource);
+        return false;
+    }
+
+
+    public function unlock($resource, $token){
+        $resource = 'LOCK_' . $resource;
+        $script = '
+            if redis.call("GET", KEYS[1]) == ARGV[1] then
+                return redis.call("DEL", KEYS[1])
+            else
+                return 0
+            end
+        ';
+        $result =  $this->redis($this->cacheConfig->getDb())->eval($script, [$resource, $token], 1);
+        $this->debug('cache unlock :' . $resource . ', token:'.$token. ', result:'.$result);
+        return $result;
+    }
+
 }
