@@ -6,19 +6,19 @@
  * Time: 11:08
  */
 
-namespace GoSwoole\Plugins\Cache\Aspect;
+namespace ESD\Plugins\Cache\Aspect;
 
+use ESD\BaseServer\Plugins\Logger\GetLogger;
+use ESD\BaseServer\Server\Server;
+use ESD\Plugins\Cache\Annotation\Cacheable;
+use ESD\Plugins\Cache\Annotation\CacheEvict;
+use ESD\Plugins\Cache\Annotation\CachePut;
+use ESD\Plugins\Cache\CacheConfig;
+use ESD\Plugins\Cache\CacheStorage;
+use ESD\Plugins\Redis\GetRedis;
 use Go\Aop\Aspect;
 use Go\Aop\Intercept\MethodInvocation;
 use Go\Lang\Annotation\Around;
-use GoSwoole\BaseServer\Plugins\Logger\GetLogger;
-use GoSwoole\BaseServer\Server\Server;
-use GoSwoole\Plugins\Cache\Annotation\Cacheable;
-use GoSwoole\Plugins\Cache\Annotation\CacheEvict;
-use GoSwoole\Plugins\Cache\Annotation\CachePut;
-use GoSwoole\Plugins\Cache\CacheConfig;
-use GoSwoole\Plugins\Cache\CacheStorage;
-use GoSwoole\Plugins\Redis\GetRedis;
 
 /**
  * Caching aspect
@@ -49,7 +49,7 @@ class CachingAspect implements Aspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(GoSwoole\Plugins\Cache\Annotation\Cacheable)")
+     * @Around("@execution(ESD\Plugins\Cache\Annotation\Cacheable)")
      * @return mixed
      */
     public function aroundCacheable(MethodInvocation $invocation)
@@ -115,8 +115,6 @@ class CachingAspect implements Aspect
     }
 
 
-
-
     /**
      * This advice intercepts an execution of cachePut methods
      *
@@ -127,7 +125,7 @@ class CachingAspect implements Aspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(GoSwoole\Plugins\Cache\Annotation\CachePut)")
+     * @Around("@execution(ESD\Plugins\Cache\Annotation\CachePut)")
      * @return mixed
      */
     public function aroundCachePut(MethodInvocation $invocation)
@@ -176,7 +174,7 @@ class CachingAspect implements Aspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(GoSwoole\Plugins\Cache\Annotation\CacheEvict)")
+     * @Around("@execution(ESD\Plugins\Cache\Annotation\CacheEvict)")
      * @return mixed
      */
     public function aroundCacheEvict(MethodInvocation $invocation)

@@ -6,7 +6,7 @@
  * Time: 11:08
  */
 
-namespace GoSwoole\Plugins\Cache\Annotation;
+namespace ESD\Plugins\Cache\Annotation;
 
 use Doctrine\Common\Annotations\Annotation;
 

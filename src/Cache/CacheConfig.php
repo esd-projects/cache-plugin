@@ -6,10 +6,10 @@
  * Time: 11:08
  */
 
-namespace GoSwoole\Plugins\Cache;
+namespace ESD\Plugins\Cache;
 
 
-use GoSwoole\BaseServer\Plugins\Config\BaseConfig;
+use ESD\BaseServer\Plugins\Config\BaseConfig;
 
 class CacheConfig extends BaseConfig
 {

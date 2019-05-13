@@ -6,15 +6,15 @@
  * Time: 10:55
  */
 
-namespace GoSwoole\Plugins\Cache;
+namespace ESD\Plugins\Cache;
 
-use GoSwoole\BaseServer\Server\Context;
-use GoSwoole\BaseServer\Server\PlugIn\AbstractPlugin;
-use GoSwoole\BaseServer\Server\PlugIn\PluginInterfaceManager;
-use GoSwoole\BaseServer\Server\Server;
-use GoSwoole\Plugins\Aop\AopPlugin;
-use GoSwoole\Plugins\Cache\Aspect\CachingAspect;
-use GoSwoole\Plugins\Redis\RedisPlugin;
+use ESD\BaseServer\Server\Context;
+use ESD\BaseServer\Server\PlugIn\AbstractPlugin;
+use ESD\BaseServer\Server\PlugIn\PluginInterfaceManager;
+use ESD\BaseServer\Server\Server;
+use ESD\Plugins\Aop\AopPlugin;
+use ESD\Plugins\Cache\Aspect\CachingAspect;
+use ESD\Plugins\Redis\RedisPlugin;
 
 class CachePlugin extends AbstractPlugin
 {
@@ -60,7 +60,7 @@ class CachePlugin extends AbstractPlugin
      * @param PluginInterfaceManager $pluginInterfaceManager
      * @return mixed|void
      * @throws \DI\DependencyException
-     * @throws \GoSwoole\BaseServer\Exception
+     * @throws \ESD\BaseServer\Exception
      * @throws \ReflectionException
      */
     public function onAdded(PluginInterfaceManager $pluginInterfaceManager)
@@ -75,7 +75,7 @@ class CachePlugin extends AbstractPlugin
      * 在服务启动前
      * @param Context $context
      * @return mixed
-     * @throws \GoSwoole\BaseServer\Server\Exception\ConfigException
+     * @throws \ESD\BaseServer\Server\Exception\ConfigException
      */
     public function beforeServerStart(Context $context)
     {

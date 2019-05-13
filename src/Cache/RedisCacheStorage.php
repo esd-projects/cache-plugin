@@ -6,11 +6,11 @@
  * Time: 17:09
  */
 
-namespace GoSwoole\Plugins\Cache;
+namespace ESD\Plugins\Cache;
 
 
-use GoSwoole\BaseServer\Plugins\Logger\GetLogger;
-use GoSwoole\Plugins\Redis\GetRedis;
+use ESD\BaseServer\Plugins\Logger\GetLogger;
+use ESD\Plugins\Redis\GetRedis;
 
 class RedisCacheStorage implements CacheStorage
 {

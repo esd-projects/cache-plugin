@@ -6,7 +6,7 @@
  * Time: 14:43
  */
 
-namespace GoSwoole\Plugins\Cache;
+namespace ESD\Plugins\Cache;
 
 
 interface CacheStorage
