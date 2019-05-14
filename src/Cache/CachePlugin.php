@@ -12,6 +12,7 @@ use ESD\BaseServer\Server\Context;
 use ESD\BaseServer\Server\PlugIn\AbstractPlugin;
 use ESD\BaseServer\Server\PlugIn\PluginInterfaceManager;
 use ESD\BaseServer\Server\Server;
+use ESD\Plugins\Aop\AopConfig;
 use ESD\Plugins\Aop\AopPlugin;
 use ESD\Plugins\Cache\Aspect\CachingAspect;
 use ESD\Plugins\Redis\RedisPlugin;
@@ -70,23 +71,32 @@ class CachePlugin extends AbstractPlugin
         $pluginInterfaceManager->addPlug(new AopPlugin());
     }
 
+    /**
+     * @param Context $context
+     * @return mixed|void
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
+     * @throws \ESD\BaseServer\Server\Exception\ConfigException
+     */
+    public function init(Context $context)
+    {
+        parent::init($context);
+        $this->cacheConfig->merge();
+        $class = $this->cacheConfig->getCacheStorageClass();
+        $this->cacheStorage = new $class($this->cacheConfig);
+        $this->setToDIContainer(CacheStorage::class, $this->cacheStorage);
+        $aopConfig = Server::$instance->getContainer()->get(AopConfig::class);
+        $aopConfig->addAspect(new CachingAspect($this->cacheStorage));
+    }
 
     /**
      * 在服务启动前
      * @param Context $context
      * @return mixed
-     * @throws \ESD\BaseServer\Server\Exception\ConfigException
      */
     public function beforeServerStart(Context $context)
     {
-        $this->cacheConfig->merge();
-        $class = $this->cacheConfig->getCacheStorageClass();
-        $this->cacheStorage = new $class($this->cacheConfig);
-        $this->setToDIContainer(CacheStorage::class, $this->cacheStorage);
-        $aopPlugin = Server::$instance->getPlugManager()->getPlug(AopPlugin::class);
-        if ($aopPlugin instanceof AopPlugin) {
-            $aopPlugin->getAopConfig()->addAspect(new CachingAspect($this->cacheStorage));
-        }
+
     }
 
     /**
