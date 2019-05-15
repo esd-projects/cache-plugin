@@ -8,6 +8,7 @@
 
 namespace ESD\Plugins\Cache\Aspect;
 
+use ESD\BaseServer\Coroutine\Co;
 use ESD\BaseServer\Plugins\Logger\GetLogger;
 use ESD\BaseServer\Server\Server;
 use ESD\Plugins\Cache\Annotation\Cacheable;
@@ -79,39 +80,44 @@ class CachingAspect implements Aspect
                 $this->debug("cache Hit!");
                 return serverUnSerialize($data);
             }
+            if ($condition) {
+                if ($this->config->getLockTimeout() > 0) {
+                    if ($this->config->getLockAlive() < $this->config->getLockTimeout()) {
+                        $this->alert('cache 缓存配置项 lockAlive 必须大于 lockTimeout, 请立即修正参数');
+                    }
 
+                    if ($token = $this->cacheStorage->lock($key, $this->config->getLockAlive())) {
+                        $result = $invocation->proceed();
+                        $data = serverSerialize($result);
+                        $this->setCache($key, $data, $cacheable);
+                        $this->cacheStorage->unlock($key, $token);
 
-            if($this->config->getLockTimeout() > 0 && $condition){
-                if($this->config->getLockAlive() < $this->config->getLockTimeout()){
-                    $this->alert('cache 缓存配置项 lockAlive 必须大于 lockTimeout, 请立即修正参数');
-                }
-
-                if($token = $this->cacheStorage->lock($key, $this->config->getLockAlive())){
+                    } else {
+                        $i = 0;
+                        do {
+                            $result = $this->getCache($key, $cacheable);
+                            if ($result) break;
+                            Co::sleep($this->config->getLockWait() / 1000.0);
+                            $i += $this->config->getLockWait();
+                            if ($i >= $this->config->getLockTimeout()) {
+                                $result = $invocation->proceed();
+                                $this->warn('lock wait timeout ' . $key . ',' . $i);
+                                break;
+                            } else {
+                                $this->debug('lock wait ' . $key . ',' . $i);
+                            }
+                        } while ($i <= $this->config->getLockTimeout());
+                    }
+                } else {
                     $result = $invocation->proceed();
                     $data = serverSerialize($result);
                     $this->setCache($key, $data, $cacheable);
-                    $this->cacheStorage->unlock($key, $token);
-
-                }else{
-                    $i = 0;
-                    do{
-                        $result = $this->getCache($key, $cacheable);
-                        if($result) break;
-                        usleep($this->config->getLockWait() * 1000);
-                        $i += $this->config->getLockWait();
-                        if($i >= $this->config->getLockTimeout()){
-                            $this->warn('lock wait timeout ' . $key .','. $i);
-                            break;
-                        }else{
-                            $this->debug('lock wait ' . $key .','. $i);
-                        }
-                    }while($i <= $this->config->getLockTimeout());
                 }
-            }else{
+            } else {
                 $result = $invocation->proceed();
             }
+            return $result;
         }
-        return $result;
     }
 
 
@@ -128,7 +134,8 @@ class CachingAspect implements Aspect
      * @Around("@execution(ESD\Plugins\Cache\Annotation\CachePut)")
      * @return mixed
      */
-    public function aroundCachePut(MethodInvocation $invocation)
+    public
+    function aroundCachePut(MethodInvocation $invocation)
     {
         $obj = $invocation->getThis();
         $class = is_object($obj) ? get_class($obj) : $obj;
@@ -177,7 +184,8 @@ class CachingAspect implements Aspect
      * @Around("@execution(ESD\Plugins\Cache\Annotation\CacheEvict)")
      * @return mixed
      */
-    public function aroundCacheEvict(MethodInvocation $invocation)
+    public
+    function aroundCacheEvict(MethodInvocation $invocation)
     {
         $obj = $invocation->getThis();
         $class = is_object($obj) ? get_class($obj) : $obj;
@@ -214,7 +222,9 @@ class CachingAspect implements Aspect
         return $result;
     }
 
-    public function getCache($key,Cacheable $cacheable){
+    public
+    function getCache($key, Cacheable $cacheable)
+    {
         if (empty($cacheable->namespace)) {
             $data = $this->cacheStorage->get($key);
         } else {
@@ -223,7 +233,8 @@ class CachingAspect implements Aspect
         return $data;
     }
 
-    public function setCache($key, $data,Cacheable $cacheable): void
+    public
+    function setCache($key, $data, Cacheable $cacheable): void
     {
 
         if (empty($cacheable->namespace)) {
@@ -232,8 +243,8 @@ class CachingAspect implements Aspect
             $ret = $this->cacheStorage->setFromNameSpace($cacheable->namespace, $key, $data);
         }
 
-        if(!$ret){
-            $this->warn('cache key:'.$key.' set fail ');
+        if (!$ret) {
+            $this->warn('cache key:' . $key . ' set fail ');
         }
     }
 }
