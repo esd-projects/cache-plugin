@@ -55,8 +55,6 @@ class CachingAspect implements Aspect
      */
     public function aroundCacheable(MethodInvocation $invocation)
     {
-        $obj = $invocation->getThis();
-        $class = is_object($obj) ? get_class($obj) : $obj;
         $cacheable = $invocation->getMethod()->getAnnotation(Cacheable::class);
         //初始化计算环境
         $p = $invocation->getArguments();
@@ -134,11 +132,8 @@ class CachingAspect implements Aspect
      * @Around("@execution(ESD\Plugins\Cache\Annotation\CachePut)")
      * @return mixed
      */
-    public
-    function aroundCachePut(MethodInvocation $invocation)
+    public function aroundCachePut(MethodInvocation $invocation)
     {
-        $obj = $invocation->getThis();
-        $class = is_object($obj) ? get_class($obj) : $obj;
         $cachePut = $invocation->getMethod()->getAnnotation(CachePut::class);
         //初始化计算环境
         $p = $invocation->getArguments();
@@ -184,11 +179,8 @@ class CachingAspect implements Aspect
      * @Around("@execution(ESD\Plugins\Cache\Annotation\CacheEvict)")
      * @return mixed
      */
-    public
-    function aroundCacheEvict(MethodInvocation $invocation)
+    public function aroundCacheEvict(MethodInvocation $invocation)
     {
-        $obj = $invocation->getThis();
-        $class = is_object($obj) ? get_class($obj) : $obj;
         $cacheEvict = $invocation->getMethod()->getAnnotation(CacheEvict::class);
         //初始化计算环境
         $p = $invocation->getArguments();
@@ -222,8 +214,7 @@ class CachingAspect implements Aspect
         return $result;
     }
 
-    public
-    function getCache($key, Cacheable $cacheable)
+    public function getCache($key, Cacheable $cacheable)
     {
         if (empty($cacheable->namespace)) {
             $data = $this->cacheStorage->get($key);
@@ -233,8 +224,7 @@ class CachingAspect implements Aspect
         return $data;
     }
 
-    public
-    function setCache($key, $data, Cacheable $cacheable): void
+    public function setCache($key, $data, Cacheable $cacheable): void
     {
 
         if (empty($cacheable->namespace)) {
