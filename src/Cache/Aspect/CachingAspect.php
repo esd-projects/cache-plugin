@@ -11,20 +11,20 @@ namespace ESD\Plugins\Cache\Aspect;
 use ESD\BaseServer\Coroutine\Co;
 use ESD\BaseServer\Plugins\Logger\GetLogger;
 use ESD\BaseServer\Server\Server;
+use ESD\Plugins\Aop\OrderAspect;
 use ESD\Plugins\Cache\Annotation\Cacheable;
 use ESD\Plugins\Cache\Annotation\CacheEvict;
 use ESD\Plugins\Cache\Annotation\CachePut;
 use ESD\Plugins\Cache\CacheConfig;
 use ESD\Plugins\Cache\CacheStorage;
 use ESD\Plugins\Redis\GetRedis;
-use Go\Aop\Aspect;
 use Go\Aop\Intercept\MethodInvocation;
 use Go\Lang\Annotation\Around;
 
 /**
  * Caching aspect
  */
-class CachingAspect implements Aspect
+class CachingAspect extends OrderAspect
 {
     use GetLogger;
     use GetRedis;
@@ -236,5 +236,13 @@ class CachingAspect implements Aspect
         if (!$ret) {
             $this->warn('cache key:' . $key . ' set fail ');
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return "CachingAspect";
     }
 }
