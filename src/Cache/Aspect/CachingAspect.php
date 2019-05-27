@@ -8,9 +8,10 @@
 
 namespace ESD\Plugins\Cache\Aspect;
 
-use ESD\BaseServer\Coroutine\Co;
-use ESD\BaseServer\Plugins\Logger\GetLogger;
-use ESD\BaseServer\Server\Server;
+use DI\DependencyException;
+use DI\NotFoundException;
+use ESD\Coroutine\Co;
+use ESD\Core\Plugins\Logger\GetLogger;
 use ESD\Plugins\Aop\OrderAspect;
 use ESD\Plugins\Cache\Annotation\Cacheable;
 use ESD\Plugins\Cache\Annotation\CacheEvict;
@@ -39,10 +40,16 @@ class CachingAspect extends OrderAspect
      */
     private $config;
 
+    /**
+     * CachingAspect constructor.
+     * @param CacheStorage $cacheStorage
+     * @throws DependencyException
+     * @throws NotFoundException
+     */
     public function __construct(CacheStorage $cacheStorage)
     {
         $this->cacheStorage = $cacheStorage;
-        $this->config = Server::$instance->getContainer()->get(CacheConfig::class);
+        $this->config = DIget(CacheConfig::class);
     }
 
 
@@ -50,8 +57,10 @@ class CachingAspect extends OrderAspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(ESD\Plugins\Cache\Annotation\Cacheable)")
      * @return mixed
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @Around("@execution(ESD\Plugins\Cache\Annotation\Cacheable)")
      */
     public function aroundCacheable(MethodInvocation $invocation)
     {
@@ -129,8 +138,10 @@ class CachingAspect extends OrderAspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(ESD\Plugins\Cache\Annotation\CachePut)")
      * @return mixed
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @Around("@execution(ESD\Plugins\Cache\Annotation\CachePut)")
      */
     public function aroundCachePut(MethodInvocation $invocation)
     {
@@ -176,8 +187,10 @@ class CachingAspect extends OrderAspect
      *
      * @param MethodInvocation $invocation Invocation
      *
-     * @Around("@execution(ESD\Plugins\Cache\Annotation\CacheEvict)")
      * @return mixed
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @Around("@execution(ESD\Plugins\Cache\Annotation\CacheEvict)")
      */
     public function aroundCacheEvict(MethodInvocation $invocation)
     {

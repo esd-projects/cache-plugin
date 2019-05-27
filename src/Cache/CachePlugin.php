@@ -8,14 +8,18 @@
 
 namespace ESD\Plugins\Cache;
 
-use ESD\BaseServer\Server\Context;
-use ESD\BaseServer\Server\PlugIn\AbstractPlugin;
-use ESD\BaseServer\Server\PlugIn\PluginInterfaceManager;
-use ESD\BaseServer\Server\Server;
+use DI\DependencyException;
+use DI\NotFoundException;
+use ESD\Core\Plugins\Config\ConfigException;
+use ESD\Core\Context\Context;
+use ESD\Core\Exception;
+use ESD\Core\PlugIn\AbstractPlugin;
+use ESD\Core\PlugIn\PluginInterfaceManager;
 use ESD\Plugins\Aop\AopConfig;
 use ESD\Plugins\Aop\AopPlugin;
 use ESD\Plugins\Cache\Aspect\CachingAspect;
 use ESD\Plugins\Redis\RedisPlugin;
+use ReflectionException;
 
 class CachePlugin extends AbstractPlugin
 {
@@ -43,8 +47,9 @@ class CachePlugin extends AbstractPlugin
     /**
      * CachePlugin constructor.
      * @param CacheConfig|null $cacheConfig
-     * @throws \DI\DependencyException
-     * @throws \ReflectionException
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @throws ReflectionException
      */
     public function __construct(?CacheConfig $cacheConfig = null)
     {
@@ -60,9 +65,10 @@ class CachePlugin extends AbstractPlugin
     /**
      * @param PluginInterfaceManager $pluginInterfaceManager
      * @return mixed|void
-     * @throws \DI\DependencyException
-     * @throws \ESD\BaseServer\Exception
-     * @throws \ReflectionException
+     * @throws DependencyException
+     * @throws Exception
+     * @throws NotFoundException
+     * @throws ReflectionException
      */
     public function onAdded(PluginInterfaceManager $pluginInterfaceManager)
     {
@@ -74,9 +80,10 @@ class CachePlugin extends AbstractPlugin
     /**
      * @param Context $context
      * @return mixed|void
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
-     * @throws \ESD\BaseServer\Server\Exception\ConfigException
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @throws ConfigException
+     * @throws \Exception
      */
     public function init(Context $context)
     {
@@ -85,14 +92,13 @@ class CachePlugin extends AbstractPlugin
         $class = $this->cacheConfig->getCacheStorageClass();
         $this->cacheStorage = new $class($this->cacheConfig);
         $this->setToDIContainer(CacheStorage::class, $this->cacheStorage);
-        $aopConfig = Server::$instance->getContainer()->get(AopConfig::class);
+        $aopConfig = DIget(AopConfig::class);
         $aopConfig->addAspect(new CachingAspect($this->cacheStorage));
     }
 
     /**
      * 在服务启动前
      * @param Context $context
-     * @return mixed
      */
     public function beforeServerStart(Context $context)
     {
@@ -102,7 +108,6 @@ class CachePlugin extends AbstractPlugin
     /**
      * 在进程启动前
      * @param Context $context
-     * @return mixed
      */
     public function beforeProcessStart(Context $context)
     {

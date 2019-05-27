@@ -8,7 +8,6 @@
 
 namespace ESD\Plugins\Cache;
 
-
 interface CacheStorage
 {
     public function getFromNameSpace(string $nameSpace, string $id);
