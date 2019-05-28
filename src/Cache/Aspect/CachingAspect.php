@@ -10,8 +10,8 @@ namespace ESD\Plugins\Cache\Aspect;
 
 use DI\DependencyException;
 use DI\NotFoundException;
-use ESD\Coroutine\Co;
 use ESD\Core\Plugins\Logger\GetLogger;
+use ESD\Coroutine\Co;
 use ESD\Plugins\Aop\OrderAspect;
 use ESD\Plugins\Cache\Annotation\Cacheable;
 use ESD\Plugins\Cache\Annotation\CacheEvict;
@@ -45,6 +45,7 @@ class CachingAspect extends OrderAspect
      * @param CacheStorage $cacheStorage
      * @throws DependencyException
      * @throws NotFoundException
+     * @throws \Exception
      */
     public function __construct(CacheStorage $cacheStorage)
     {
@@ -68,7 +69,10 @@ class CachingAspect extends OrderAspect
         //初始化计算环境
         $p = $invocation->getArguments();
         //计算key
-        $key = eval("return (" . $cacheable->key . ");");
+        $key = null;
+        if (!empty($cacheable->key)) {
+            $key = eval("return (" . $cacheable->key . ");");
+        }
         if (empty($key)) {
             $this->warn("cache key is empty,ignore this cache");
             //执行
@@ -149,7 +153,10 @@ class CachingAspect extends OrderAspect
         //初始化计算环境
         $p = $invocation->getArguments();
         //计算key
-        $key = eval("return (" . $cachePut->key . ");");
+        $key = null;
+        if (!empty($cachePut->key)) {
+            $key = eval("return (" . $cachePut->key . ");");
+        }
         if (empty($key)) {
             $this->warn("cache key is empty,ignore this cache");
             //执行
@@ -198,8 +205,11 @@ class CachingAspect extends OrderAspect
         //初始化计算环境
         $p = $invocation->getArguments();
         //计算key
-        $key = eval("return (" . $cacheEvict->key . ");");
-        if (empty($key)) {
+        $key = null;
+        if (!empty($cacheEvict->key)) {
+            $key = eval("return (" . $cacheEvict->key . ");");
+        }
+        if (empty($key) && ($cacheEvict->allEntries == false || empty($cacheEvict->namespace))) {
             $this->warn("cache key is empty,ignore this cache");
             //执行
             $result = $invocation->proceed();
