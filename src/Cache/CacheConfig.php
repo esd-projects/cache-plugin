@@ -64,6 +64,12 @@ class CacheConfig extends BaseConfig
      */
     protected $lockAlive = 10000;
 
+    /**
+     * 死锁过期是否抛出异常，如果不抛出则会直接查库
+     * @var bool
+     */
+    protected $lockThrowException = false;
+
     public function __construct()
     {
         parent::__construct(self::key);
@@ -85,7 +91,7 @@ class CacheConfig extends BaseConfig
         $this->lockTimeout = $timeout;
     }
 
-    public function getLockTimeout() :int
+    public function getLockTimeout(): int
     {
         return $this->lockTimeout;
     }
@@ -98,6 +104,16 @@ class CacheConfig extends BaseConfig
 
     public function setLockWait($lockwait): void {
         $this->lockWait = $lockwait;
+    }
+
+    public function getLockThrowException():bool
+    {
+        return $this->lockThrowException;
+    }
+
+    public function setLockThrowException(bool $isThrow) :void
+    {
+        $this->lockThrowException = $isThrow;
     }
 
 
