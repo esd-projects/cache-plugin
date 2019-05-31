@@ -11,13 +11,13 @@ namespace ESD\Plugins\Cache\Aspect;
 use DI\DependencyException;
 use DI\NotFoundException;
 use ESD\Core\Plugins\Logger\GetLogger;
-use ESD\Core\Exception;
 use ESD\Coroutine\Co;
 use ESD\Plugins\Aop\OrderAspect;
 use ESD\Plugins\Cache\Annotation\Cacheable;
 use ESD\Plugins\Cache\Annotation\CacheEvict;
 use ESD\Plugins\Cache\Annotation\CachePut;
 use ESD\Plugins\Cache\CacheConfig;
+use ESD\Plugins\Cache\CacheException;
 use ESD\Plugins\Cache\CacheStorage;
 use ESD\Plugins\Redis\GetRedis;
 use Go\Aop\Intercept\MethodInvocation;
@@ -113,7 +113,7 @@ class CachingAspect extends OrderAspect
                             $i += $this->config->getLockWait();
                             if ($i >= $this->config->getLockTimeout()) {
                                 if($this->config->getLockThrowException()){
-                                    throw new Exception('cache key lock timeout' . $key);
+                                    throw new CacheException('cache key lock timeout' . $key);
                                 }else{
                                     $result = $invocation->proceed();
                                 }
