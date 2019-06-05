@@ -98,11 +98,11 @@ class CachingAspect extends OrderAspect
                         $this->alert('cache 缓存配置项 lockAlive 必须大于 lockTimeout, 请立即修正参数');
                     }
 
-                    if ($token = $this->cacheStorage->lock($key, $this->config->getLockAlive())) {
+                    if ($token = $this->cacheStorage->lock($cacheable->namespace . $key, $this->config->getLockAlive())) {
                         $result = $invocation->proceed();
                         $data = serverSerialize($result);
                         $this->setCache($key, $data, $cacheable);
-                        $this->cacheStorage->unlock($key, $token);
+                        $this->cacheStorage->unlock($cacheable->namespace . $key, $token);
 
                     } else {
                         $i = 0;
