@@ -45,11 +45,11 @@ trait  GetCache {
                 $this->alert('cache 缓存配置项 lockAlive 必须大于 lockTimeout, 请立即修正参数');
             }
 
-            if ($token = $this->Cache()->lock($key, $config->getLockAlive())) {
+            if ($token = $this->Cache()->lock($namespace . $key, $config->getLockAlive())) {
                 $result = $callable();
                 $data = serverSerialize($result);
                 $this->setCache($key, $data, $timeout, $namespace);
-                $this->Cache()->unlock($key, $token);
+                $this->Cache()->unlock($namespace . $key, $token);
 
             } else {
                 $i = 0;
